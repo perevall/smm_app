@@ -1305,7 +1305,6 @@ if __name__ == '__main__':
                                                     "Ctr" : "Ctr, %"
                                                     }))
         except:
-            except:
             if response.status_code in [400, 500, 502]:
                 exit()
             else:

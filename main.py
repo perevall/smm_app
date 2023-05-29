@@ -872,8 +872,9 @@ if __name__ == '__main__':
 
 
 
-                    df_sum = df_result.groupby(['CampaignName']).sum()
-                    df_multiple_ctr_wrk = df_sum[['Conversions', 'Cost', 'Clicks', 'Impressions']]
+                    #df_sum = df_result.groupby(['CampaignName']).sum()
+                    df_sum = df_result.copy()
+                    df_multiple_ctr_wrk = df_sum[['CampaignName','Conversions', 'Cost', 'Clicks', 'Impressions']]
                     df_multiple_ctr_wrk['CostPerClick'] = df_multiple_ctr_wrk['Cost'] / df_multiple_ctr_wrk['Clicks']
                     df_multiple_ctr_wrk['CostPerAction'] = (df_multiple_ctr_wrk['Cost'] / df_multiple_ctr_wrk['Conversions'])
                     df_multiple_ctr_wrk['ConversionRate'] = (df_multiple_ctr_wrk['Conversions'] / df_multiple_ctr_wrk['Clicks']) * 100
@@ -894,6 +895,9 @@ if __name__ == '__main__':
                         if df_multiple_ctr_wrk.CostPerClick[i] == np.inf or df_multiple_ctr_wrk.CostPerClick[i] == np.nan:
                             df_multiple_ctr_wrk.CostPerClick[i] = None
 
+
+                    df_multiple_ctr_wrk = df_multiple_ctr_wrk.drop(labels = ['index'], axis = 1)
+
                     df_multiple_ctr_wrk_2 = df_multiple_ctr_wrk.copy()
                     df_multiple_ctr_wrk.loc[len(df_multiple_ctr_wrk.index)] = df_multiple_ctr_wrk_2.median(axis=0, skipna=True, numeric_only=True)
                     a = df_multiple_ctr_wrk.index.max()
@@ -902,11 +906,14 @@ if __name__ == '__main__':
                     b = df_multiple_ctr_wrk.index.max()
                     df_multiple_ctr_wrk.iat[b, 0] = 'Mean'
 
-                    df_two_report = df_multiple_ctr_wrk.copy()
-                    df_two_report = df_two_report.set_index('CampaignName')
 
                     df_multiple_ctr_wrk = df_multiple_ctr_wrk.applymap(round_values)
-                    df_to_show = df_multiple_ctr_wrk.copy()
+
+                    df_to_show = df_multiple_ctr_wrk.groupby(['CampaignName']).sum().copy()
+
+                    df_two_report_show = df_to_show.reset_index().copy()
+                    df_two_report = df_to_show.copy()
+                    df_to_show = df_to_show.reset_index()
 
                     df_to_show = df_to_show.style.format(precision=2).background_gradient(cmap = "RdBu",
                                                                                        subset=["ConversionRate"],
@@ -1162,9 +1169,10 @@ if __name__ == '__main__':
                     ##рекомендации по конверсиям
                     st.divider()
                     tab_mult_mean, tab_mult_median = st.tabs(["Анализ по среднему \t", "Анализ по медиане \t"])
+
                     with tab_mult_mean:
                         st.subheader("У данных кампаний за выбранный период CR выше средней")
-                        st.dataframe(df_multiple_ctr_wrk[(df_multiple_ctr_wrk["ConversionRate"] > df_two_report.at['Mean', 'ConversionRate'] )& (df_multiple_ctr_wrk.CampaignName != 'Mean')& (df_multiple_ctr_wrk.CampaignName != 'Median') ].rename(columns={"Cost": "Cost, руб.",
+                        st.dataframe(df_two_report_show[(df_two_report_show["ConversionRate"] > df_two_report.at['Mean', 'ConversionRate'] )& (df_two_report_show.CampaignName != 'Mean')& (df_two_report_show.CampaignName != 'Median') ].rename(columns={"Cost": "Cost, руб.",
                                                                         "CostPerClick": "CostPerClick, руб.",
                                                                         "CostPerAction" : "CostPerAction, руб.",
                                                                         "ConversionRate" : "ConversionRate, %",
@@ -1173,7 +1181,7 @@ if __name__ == '__main__':
 
                         st.divider()
                         st.subheader("У данных кампаний за выбранный период CR ниже средней, но не в 2 раза. Рассмотрите данные РК подробнее")
-                        st.dataframe(df_multiple_ctr_wrk[(df_multiple_ctr_wrk["ConversionRate"] < df_two_report.at['Mean', 'ConversionRate']) & (df_multiple_ctr_wrk["ConversionRate"] > df_two_report.at['Mean', 'ConversionRate']/2) & (df_multiple_ctr_wrk.CampaignName != 'Median') & (df_multiple_ctr_wrk.CampaignName != 'Mean')].rename(columns={"Cost": "Cost, руб.",
+                        st.dataframe(df_two_report_show[(df_two_report_show["ConversionRate"] < df_two_report.at['Mean', 'ConversionRate']) & (df_two_report_show["ConversionRate"] > df_two_report.at['Mean', 'ConversionRate']/2) & (df_two_report_show.CampaignName != 'Median') & (df_two_report_show.CampaignName != 'Mean')].rename(columns={"Cost": "Cost, руб.",
                                                                         "CostPerClick": "CostPerClick, руб.",
                                                                         "CostPerAction" : "CostPerAction, руб.",
                                                                         "ConversionRate" : "ConversionRate, %",
@@ -1182,7 +1190,7 @@ if __name__ == '__main__':
 
                         st.divider()
                         st.subheader("У данных кампаний за выбранный период CR ниже средней больше, чем в 2 раза. Рассмотрите данные РК подробнее ")
-                        st.dataframe(df_multiple_ctr_wrk[(df_multiple_ctr_wrk["ConversionRate"] < df_two_report.at['Mean', 'ConversionRate']/2) & (df_multiple_ctr_wrk.CampaignName != 'Mean') & (df_multiple_ctr_wrk.CampaignName != 'Median')].rename(columns={"Cost": "Cost, руб.",
+                        st.dataframe(df_two_report_show[(df_two_report_show["ConversionRate"] < df_two_report.at['Mean', 'ConversionRate']/2) & (df_two_report_show.CampaignName != 'Mean') & (df_two_report_show.CampaignName != 'Median')].rename(columns={"Cost": "Cost, руб.",
                                                                         "CostPerClick": "CostPerClick, руб.",
                                                                         "CostPerAction" : "CostPerAction, руб.",
                                                                         "ConversionRate" : "ConversionRate, %",
@@ -1191,7 +1199,7 @@ if __name__ == '__main__':
 
                         st.divider()
                         st.subheader("У данных РК нет конверсий")
-                        st.dataframe(df_multiple_ctr_wrk[df_multiple_ctr_wrk["ConversionRate"] == 0].rename(columns={"Cost": "Cost, руб.",
+                        st.dataframe(df_two_report_show[df_two_report_show["ConversionRate"] == 0].rename(columns={"Cost": "Cost, руб.",
                                                                         "CostPerClick": "CostPerClick, руб.",
                                                                         "CostPerAction" : "CostPerAction, руб.",
                                                                         "ConversionRate" : "ConversionRate, %",
@@ -1202,7 +1210,7 @@ if __name__ == '__main__':
                         ##рекомендации по цене цели
                         st.divider()
                         st.subheader("У данных кампаний за выбранный период цена цели (СPA) ниже средней (чем ниже цена цели, тем лучше)")
-                        st.dataframe(df_multiple_ctr_wrk[(df_multiple_ctr_wrk["CostPerAction"] < df_two_report.at['Mean', 'CostPerAction']) & (df_multiple_ctr_wrk.CampaignName != 'Median') & (df_multiple_ctr_wrk.CampaignName != 'Mean')].rename(columns={"Cost": "Cost, руб.",
+                        st.dataframe(df_two_report_show[(df_two_report_show["CostPerAction"] < df_two_report.at['Mean', 'CostPerAction']) & (df_two_report_show.CampaignName != 'Median') & (df_two_report_show.CampaignName != 'Mean')].rename(columns={"Cost": "Cost, руб.",
                                                                         "CostPerClick": "CostPerClick, руб.",
                                                                         "CostPerAction" : "CostPerAction, руб.",
                                                                         "ConversionRate" : "ConversionRate, %",
@@ -1211,7 +1219,7 @@ if __name__ == '__main__':
 
                         st.divider()
                         st.subheader("У данных кампаний за выбранный период времени цена цели выше средней цены цели, но не в 2 раза. Рассмотрите РК подробнее")
-                        st.dataframe(df_multiple_ctr_wrk[(df_multiple_ctr_wrk["CostPerAction"] > df_two_report.at['Mean', 'CostPerAction']) & (df_multiple_ctr_wrk.CampaignName != 'Median') & (df_multiple_ctr_wrk["CostPerAction"] < df_two_report.at['Mean', 'CostPerAction']*2) & (df_multiple_ctr_wrk.CampaignName != 'Mean')].rename(columns={"Cost": "Cost, руб.",
+                        st.dataframe(df_two_report_show[(df_two_report_show["CostPerAction"] > df_two_report.at['Mean', 'CostPerAction']) & (df_two_report_show.CampaignName != 'Median') & (df_two_report_show["CostPerAction"] < df_two_report.at['Mean', 'CostPerAction']*2) & (df_two_report_show.CampaignName != 'Mean')].rename(columns={"Cost": "Cost, руб.",
                                                                         "CostPerClick": "CostPerClick, руб.",
                                                                         "CostPerAction" : "CostPerAction, руб.",
                                                                         "ConversionRate" : "ConversionRate, %",
@@ -1220,7 +1228,7 @@ if __name__ == '__main__':
 
                         st.divider()
                         st.subheader("У данных кампаний за выбранный период времени цена цели выше средней цены цели в 2 раза. Рассмотрите РК подробнее")
-                        st.dataframe(df_multiple_ctr_wrk[(df_multiple_ctr_wrk["CostPerAction"] > df_two_report.at['Mean', 'CostPerAction']*2) & (df_multiple_ctr_wrk.CampaignName != 'Median') & (df_multiple_ctr_wrk.CampaignName != 'Mean')].rename(columns={"Cost": "Cost, руб.",
+                        st.dataframe(df_two_report_show[(df_two_report_show["CostPerAction"] > df_two_report.at['Mean', 'CostPerAction']*2) & (df_two_report_show.CampaignName != 'Median') & (df_two_report_show.CampaignName != 'Mean')].rename(columns={"Cost": "Cost, руб.",
                                                                         "CostPerClick": "CostPerClick, руб.",
                                                                         "CostPerAction" : "CostPerAction, руб.",
                                                                         "ConversionRate" : "ConversionRate, %",
@@ -1229,7 +1237,7 @@ if __name__ == '__main__':
 
                     with tab_mult_median:
                         st.subheader("У данных кампаний за выбранный период CR выше медианы")
-                        st.dataframe(df_multiple_ctr_wrk[(df_multiple_ctr_wrk["ConversionRate"] > df_two_report.at['Median', 'ConversionRate'] )& (df_multiple_ctr_wrk.CampaignName != 'Mean')& (df_multiple_ctr_wrk.CampaignName != 'Median') ].rename(columns={"Cost": "Cost, руб.",
+                        st.dataframe(df_two_report_show[(df_two_report_show["ConversionRate"] > df_two_report.at['Median', 'ConversionRate'] )& (df_two_report_show.CampaignName != 'Mean')& (df_two_report_show.CampaignName != 'Median') ].rename(columns={"Cost": "Cost, руб.",
                                                                         "CostPerClick": "CostPerClick, руб.",
                                                                         "CostPerAction" : "CostPerAction, руб.",
                                                                         "ConversionRate" : "ConversionRate, %",
@@ -1238,7 +1246,7 @@ if __name__ == '__main__':
 
                         st.divider()
                         st.subheader("У данных кампаний за выбранный период CR ниже медианы, но не в 2 раза. Рассмотрите данные РК подробнее")
-                        st.dataframe(df_multiple_ctr_wrk[(df_multiple_ctr_wrk["ConversionRate"] < df_two_report.at['Median', 'ConversionRate']) & (df_multiple_ctr_wrk["ConversionRate"] > df_two_report.at['Mean', 'ConversionRate']/2) & (df_multiple_ctr_wrk.CampaignName != 'Median') & (df_multiple_ctr_wrk.CampaignName != 'Mean')].rename(columns={"Cost": "Cost, руб.",
+                        st.dataframe(df_two_report_show[(df_two_report_show["ConversionRate"] < df_two_report.at['Median', 'ConversionRate']) & (df_two_report_show["ConversionRate"] > df_two_report.at['Mean', 'ConversionRate']/2) & (df_two_report_show.CampaignName != 'Median') & (df_two_report_show.CampaignName != 'Mean')].rename(columns={"Cost": "Cost, руб.",
                                                                         "CostPerClick": "CostPerClick, руб.",
                                                                         "CostPerAction" : "CostPerAction, руб.",
                                                                         "ConversionRate" : "ConversionRate, %",
@@ -1247,7 +1255,7 @@ if __name__ == '__main__':
 
                         st.divider()
                         st.subheader("У данных кампаний за выбранный период CR ниже медианы больше, чем в 2 раза. Рассмотрите данные РК подробнее ")
-                        st.dataframe(df_multiple_ctr_wrk[(df_multiple_ctr_wrk["ConversionRate"] < df_two_report.at['Median', 'ConversionRate']/2) & (df_multiple_ctr_wrk.CampaignName != 'Mean') & (df_multiple_ctr_wrk.CampaignName != 'Median')].rename(columns={"Cost": "Cost, руб.",
+                        st.dataframe(df_two_report_show[(df_two_report_show["ConversionRate"] < df_two_report.at['Median', 'ConversionRate']/2) & (df_two_report_show.CampaignName != 'Mean') & (df_two_report_show.CampaignName != 'Median')].rename(columns={"Cost": "Cost, руб.",
                                                                         "CostPerClick": "CostPerClick, руб.",
                                                                         "CostPerAction" : "CostPerAction, руб.",
                                                                         "ConversionRate" : "ConversionRate, %",
@@ -1256,7 +1264,7 @@ if __name__ == '__main__':
 
                         st.divider()
                         st.subheader("У данных РК нет конверсий")
-                        st.dataframe(df_multiple_ctr_wrk[df_multiple_ctr_wrk["ConversionRate"] == 0].rename(columns={"Cost": "Cost, руб.",
+                        st.dataframe(df_two_report_show[df_two_report_show["ConversionRate"] == 0].rename(columns={"Cost": "Cost, руб.",
                                                                         "CostPerClick": "CostPerClick, руб.",
                                                                         "CostPerAction" : "CostPerAction, руб.",
                                                                         "ConversionRate" : "ConversionRate, %",
@@ -1267,7 +1275,7 @@ if __name__ == '__main__':
                         ##рекомендации по цене цели
                         st.divider()
                         st.subheader("У данных кампаний за выбранный период цена цели (СPA) ниже медианы (чем ниже цена цели, тем лучше)")
-                        st.dataframe(df_multiple_ctr_wrk[(df_multiple_ctr_wrk["CostPerAction"] < df_two_report.at['Median', 'CostPerAction']) & (df_multiple_ctr_wrk.CampaignName != 'Median') & (df_multiple_ctr_wrk.CampaignName != 'Mean')].rename(columns={"Cost": "Cost, руб.",
+                        st.dataframe(df_two_report_show[(df_two_report_show["CostPerAction"] < df_two_report.at['Median', 'CostPerAction']) & (df_two_report_show.CampaignName != 'Median') & (df_two_report_show.CampaignName != 'Mean')].rename(columns={"Cost": "Cost, руб.",
                                                                         "CostPerClick": "CostPerClick, руб.",
                                                                         "CostPerAction" : "CostPerAction, руб.",
                                                                         "ConversionRate" : "ConversionRate, %",
@@ -1276,7 +1284,7 @@ if __name__ == '__main__':
 
                         st.divider()
                         st.subheader("У данных кампаний за выбранный период времени цена цели выше медианой цены цели, но не в 2 раза. Рассмотрите РК подробнее")
-                        st.dataframe(df_multiple_ctr_wrk[(df_multiple_ctr_wrk["CostPerAction"] > df_two_report.at['Median', 'CostPerAction']) & (df_multiple_ctr_wrk.CampaignName != 'Median') & (df_multiple_ctr_wrk["CostPerAction"] < df_two_report.at['Mean', 'CostPerAction']*2) & (df_multiple_ctr_wrk.CampaignName != 'Mean')].rename(columns={"Cost": "Cost, руб.",
+                        st.dataframe(df_two_report_show[(df_two_report_show["CostPerAction"] > df_two_report.at['Median', 'CostPerAction']) & (df_two_report_show.CampaignName != 'Median') & (df_two_report_show["CostPerAction"] < df_two_report.at['Mean', 'CostPerAction']*2) & (df_two_report_show.CampaignName != 'Mean')].rename(columns={"Cost": "Cost, руб.",
                                                                         "CostPerClick": "CostPerClick, руб.",
                                                                         "CostPerAction" : "CostPerAction, руб.",
                                                                         "ConversionRate" : "ConversionRate, %",
@@ -1285,7 +1293,7 @@ if __name__ == '__main__':
 
                         st.divider()
                         st.subheader("У данных кампаний за выбранный период времени цена цели выше медианой цены цели в 2 раза. Рассмотрите РК подробнее")
-                        st.dataframe(df_multiple_ctr_wrk[(df_multiple_ctr_wrk["CostPerAction"] > df_two_report.at['Median', 'CostPerAction']*2) & (df_multiple_ctr_wrk.CampaignName != 'Median') & (df_multiple_ctr_wrk.CampaignName != 'Mean')].rename(columns={"Cost": "Cost, руб.",
+                        st.dataframe(df_two_report_show[(df_two_report_show["CostPerAction"] > df_two_report.at['Median', 'CostPerAction']*2) & (df_two_report_show.CampaignName != 'Median') & (df_two_report_show.CampaignName != 'Mean')].rename(columns={"Cost": "Cost, руб.",
                                                                         "CostPerClick": "CostPerClick, руб.",
                                                                         "CostPerAction" : "CostPerAction, руб.",
                                                                         "ConversionRate" : "ConversionRate, %",
@@ -1313,19 +1321,32 @@ if __name__ == '__main__':
                 pass
         try:
 
-            df_key_wrk = df_key.copy()
+
+            df_key_wrk = df_key[['CampaignName', 'Criterion','Conversions', 'Cost', 'Clicks', 'Impressions']].copy()
             #df_key_wrk = df_key_wrk.groupby(by = ['Criterion']).sum()
             df_key_wrk_2 = df_key_wrk.copy()
 
             df_key_wrk.loc[len(df_key_wrk.index)] = df_key_wrk_2.median(axis=0, skipna=True, numeric_only=True)
-            a = df_key_wrk.index.max()
-            df_key_wrk.iat[a, 0] = 'Median'
+            aa = df_key_wrk.index.max()
+            df_key_wrk.iat[aa, 0] = 'Median'
             df_key_wrk.loc[len(df_key_wrk.index)] = df_key_wrk_2.mean(axis=0, skipna=True, numeric_only=True)
+            bb = df_key_wrk.index.max()
+            df_key_wrk.iat[bb, 0] = 'Mean'
+
+            df_key_wrk['CostPerClick'] = df_key_wrk['Cost'] / df_key_wrk['Clicks']
+            df_key_wrk['CostPerConversion'] = (df_key_wrk['Cost'] / df_key_wrk['Conversions'])
+            df_key_wrk['ConversionRate'] = (df_key_wrk['Conversions'] / df_key_wrk['Clicks']) * 100
+            df_key_wrk['Ctr'] = df_key_wrk['Clicks'] / df_key_wrk['Impressions'] * 100
+
+            a = df_key_wrk.index.max() - 1
             b = df_key_wrk.index.max()
-            df_key_wrk.iat[b, 0] = 'Mean'
+
 
             ## Пошли отчеты
             df_key_dash_wrk = df_key_wrk.copy()
+
+
+
             #df_key_dash_wrk = df_key_dash_wrk.set_index("Criterion")
             st.subheader("Ключевые фразы за выбранный период, где кликов > 0")
             st.dataframe(df_key_wrk.rename(columns={"Cost": "Cost, руб.",
@@ -1338,8 +1359,9 @@ if __name__ == '__main__':
 
             with tab_key_mean:
 
+
                 st.subheader("Ключевые слова за выбранный период, у которых стоимость конверсии выше среднего уровня на 50%")
-                st.dataframe(df_key_wrk[df_key_wrk["CostPerConversion"] > df_key_dash_wrk.iat[b-1, 7]*1.5].rename(columns={"Cost": "Cost, руб.",
+                st.dataframe(df_key_wrk[(df_key_wrk["CostPerConversion"] > df_key_wrk.iat[b, 7]*1.5)& (df_key_wrk["CampaignName"] != "Mean") & (df_key_wrk["CampaignName"] != "Median")].rename(columns={"Cost": "Cost, руб.",
                                                         "CostPerClick": "CostPerClick, руб.",
                                                         "CostPerConversion" : "CostPerAction, руб.",
                                                         "ConversionRate" : "ConversionRate, %",
@@ -1348,7 +1370,7 @@ if __name__ == '__main__':
                 st.divider()
 
                 st.subheader("Ключевые слова, по которым расходы составили свыше 150% средней цены конверсии и которые до сих пор не принесли конверсии")
-                st.dataframe(df_key_wrk[(df_key_wrk["Cost"] > df_key_dash_wrk.iat[b-1, 7]*1.5) & df_key_dash_wrk["Conversions"] == 0].rename(columns={"Cost": "Cost, руб.",
+                st.dataframe(df_key_wrk[(df_key_wrk["Cost"] > df_key_wrk.iat[b, 7]*1.5) & (df_key_wrk["Conversions"] == 0)& (df_key_wrk["CampaignName"] != "Mean") & (df_key_wrk["CampaignName"] != "Median")].rename(columns={"Cost": "Cost, руб.",
                                                         "CostPerClick": "CostPerClick, руб.",
                                                         "CostPerConversion" : "CostPerAction, руб.",
                                                         "ConversionRate" : "ConversionRate, %",
@@ -1356,7 +1378,7 @@ if __name__ == '__main__':
                                                         }))
             with tab_key_median:
                 st.subheader("Ключевые слова за выбранный период, у которых стоимость конверсии выше медианого уровня на 50%")
-                st.dataframe(df_key_wrk[df_key_wrk["CostPerConversion"] > df_key_dash_wrk.iat[b, 7]*1.5].rename(columns={"Cost": "Cost, руб.",
+                st.dataframe(df_key_wrk[(df_key_wrk["CostPerConversion"] > df_key_wrk.iat[a, 7]*1.5) & (df_key_wrk["CampaignName"] != "Mean") & (df_key_wrk["CampaignName"] != "Median")].rename(columns={"Cost": "Cost, руб.",
                                                         "CostPerClick": "CostPerClick, руб.",
                                                         "CostPerConversion" : "CostPerAction, руб.",
                                                         "ConversionRate" : "ConversionRate, %",
@@ -1364,7 +1386,7 @@ if __name__ == '__main__':
                                                         }))
                 st.divider()
                 st.subheader("Ключевые слова, по которым расходы составили свыше 150% медианой цены конверсии и которые до сих пор не принесли конверсии")
-                st.dataframe(df_key_wrk[(df_key_wrk["Cost"] > df_key_dash_wrk.iat[b, 7]*1.5) & df_key_dash_wrk["Conversions"] == 0].rename(columns={"Cost": "Cost, руб.",
+                st.dataframe(df_key_wrk[(df_key_wrk["Cost"] > df_key_wrk.iat[a, 7]*1.5) & (df_key_wrk["Conversions"] == 0) & (df_key_wrk["CampaignName"] != "Mean") & (df_key_wrk["CampaignName"] != "Median")].rename(columns={"Cost": "Cost, руб.",
                                                         "CostPerClick": "CostPerClick, руб.",
                                                         "CostPerConversion" : "CostPerAction, руб.",
                                                         "ConversionRate" : "ConversionRate, %",
@@ -1417,14 +1439,3 @@ if __name__ == '__main__':
             else:
                 st.subheader("Выберите другую даты или кампанию")
                 pass
-
-
-
-
-
-
-
-
-
-
-

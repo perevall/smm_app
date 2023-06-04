@@ -1367,7 +1367,7 @@ if __name__ == '__main__':
 
 
                 st.subheader("Ключевые слова за выбранный период, у которых стоимость конверсии выше среднего уровня на 50%")
-                st.dataframe(df_key_wrk[(df_key_wrk["CostPerConversion"] > df_key_wrk.iat[b, 7]*1.5)& (df_key_wrk["CampaignName"] != "Mean") & (df_key_wrk["CampaignName"] != "Median")].rename(columns={"Cost": "Cost, руб.",
+                st.dataframe(df_key_wrk[(df_key_wrk["CostPerConversion"] > df_key_wrk.iat[b, 7]*1.5)&(df_key_wrk["Conversions"] > 0)& (df_key_wrk["CampaignName"] != "Mean") & (df_key_wrk["CampaignName"] != "Median")].rename(columns={"Cost": "Cost, руб.",
                                                         "CostPerClick": "CostPerClick, руб.",
                                                         "CostPerConversion" : "CostPerAction, руб.",
                                                         "ConversionRate" : "ConversionRate, %",
@@ -1384,7 +1384,7 @@ if __name__ == '__main__':
                                                         }))
             with tab_key_median:
                 st.subheader("Ключевые слова за выбранный период, у которых стоимость конверсии выше медианого уровня на 50%")
-                st.dataframe(df_key_wrk[(df_key_wrk["CostPerConversion"] > df_key_wrk.iat[a, 7]*1.5) & (df_key_wrk["CampaignName"] != "Mean") & (df_key_wrk["CampaignName"] != "Median")].rename(columns={"Cost": "Cost, руб.",
+                st.dataframe(df_key_wrk[(df_key_wrk["CostPerConversion"] > df_key_wrk.iat[a, 7]*1.5)&(df_key_wrk["Conversions"] > 0) & (df_key_wrk["CampaignName"] != "Mean") & (df_key_wrk["CampaignName"] != "Median")].rename(columns={"Cost": "Cost, руб.",
                                                         "CostPerClick": "CostPerClick, руб.",
                                                         "CostPerConversion" : "CostPerAction, руб.",
                                                         "ConversionRate" : "ConversionRate, %",

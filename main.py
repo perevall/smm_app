@@ -865,22 +865,28 @@ if __name__ == '__main__':
                     df_result = df1.copy()
                     for i in drop_campaign_list:
                         df_result = df_result.loc[df_result['CampaignName'] != i]
-                    df_mean = df_result.copy()
+                    df_mean = df_result[['CampaignName','Conversions', 'Cost', 'Clicks', 'Impressions', 'Date']].copy()
                     df_mean = df_mean.drop(['CampaignName'], axis = 1)
                     df_mean = df_mean.groupby(['Date']).mean()
                     df_mean = df_mean.reset_index()
+                    df_mean['CostPerClick'] = df_mean['Cost'] / df_mean['Clicks']
+                    df_mean['CostPerConversion'] = (df_mean['Cost'] / df_mean['Conversions'])
+                    df_mean['ConversionRate'] = (df_mean['Conversions'] / df_mean['Clicks']) * 100
+                    df_mean['Ctr'] = df_mean['Clicks'] / df_mean['Impressions'] * 100
 
 
 
-                    #df_sum = df_result.groupby(['CampaignName']).sum()
-                    df_sum = df_result.copy()
+
+                    df_sum = df_result.groupby(['CampaignName']).sum()
+                    #df_sum = df_result.copy()
+                    df_sum = df_sum.reset_index()
                     df_multiple_ctr_wrk = df_sum[['CampaignName','Conversions', 'Cost', 'Clicks', 'Impressions']]
                     df_multiple_ctr_wrk['CostPerClick'] = df_multiple_ctr_wrk['Cost'] / df_multiple_ctr_wrk['Clicks']
                     df_multiple_ctr_wrk['CostPerAction'] = (df_multiple_ctr_wrk['Cost'] / df_multiple_ctr_wrk['Conversions'])
                     df_multiple_ctr_wrk['ConversionRate'] = (df_multiple_ctr_wrk['Conversions'] / df_multiple_ctr_wrk['Clicks']) * 100
                     df_multiple_ctr_wrk['Ctr'] = df_multiple_ctr_wrk['Clicks'] / df_multiple_ctr_wrk['Impressions'] * 100
 
-                    df_multiple_ctr_wrk = df_multiple_ctr_wrk.reset_index()
+                    #df_multiple_ctr_wrk = df_multiple_ctr_wrk.reset_index()
 
 
 
@@ -896,7 +902,7 @@ if __name__ == '__main__':
                             df_multiple_ctr_wrk.CostPerClick[i] = None
 
 
-                    df_multiple_ctr_wrk = df_multiple_ctr_wrk.drop(labels = ['index'], axis = 1)
+                    #df_multiple_ctr_wrk = df_multiple_ctr_wrk.drop(labels = ['index'], axis = 1)
 
                     df_multiple_ctr_wrk_2 = df_multiple_ctr_wrk.copy()
                     df_multiple_ctr_wrk.loc[len(df_multiple_ctr_wrk.index)] = df_multiple_ctr_wrk_2.median(axis=0, skipna=True, numeric_only=True)
